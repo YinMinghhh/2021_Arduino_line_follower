@@ -1,0 +1,126 @@
+int Left_motor=8;     //左电机
+int Left_motor_pwm=9;     //左电机调速
+int Right_motor_pwm=10;    // 右电机调速
+int Right_motor=11;    // 右电机
+int time=1;
+const int SeniorRight = 5;       //最右循迹红外传感器
+const int SensorRight = 3;     //右循迹红外传感器
+const int SensorMiddle = 13;
+const int SensorLeft = 4;       //左循迹红外传感器
+const int SeniorLeft = 6;
+
+int SRR;
+int SR;    //右循迹红外传感器状态
+int SM;
+int SL;    //左循迹红外传感器状态
+int SLL;
+void setup()
+{
+  pinMode(Left_motor,OUTPUT); 
+  pinMode(Left_motor_pwm,OUTPUT);
+  pinMode(Right_motor_pwm,OUTPUT);
+  pinMode(Right_motor,OUTPUT);
+  pinMode(SeniorLeft,INPUT);
+  pinMode(SensorRight, INPUT);
+  pinMode(SensorMiddle,INPUT);
+  pinMode(SensorLeft, INPUT);
+  pinMode(SeniorRight,INPUT);
+}
+void run()     // 前进
+{
+  digitalWrite(Right_motor,LOW);  // 右电机前进
+  digitalWrite(Right_motor_pwm,HIGH);   
+  analogWrite(Right_motor_pwm,90);
+  
+  
+  digitalWrite(Left_motor,HIGH);  // 左电机前进
+  digitalWrite(Left_motor_pwm,HIGH);     
+  analogWrite(Left_motor_pwm,90);
+}
+void back(){          //后退
+  digitalWrite(Right_motor,HIGH);  // 右电机后退    
+  analogWrite(Right_motor_pwm,90);
+  digitalWrite(Left_motor,LOW);  // 左电机后退    
+  analogWrite(Left_motor_pwm,90);
+}
+void brake()         //刹车，停车
+{
+  
+  digitalWrite(Right_motor_pwm,LOW);  // 右电机PWM 调速输出0      
+  analogWrite(Right_motor_pwm,0);
+  digitalWrite(Left_motor_pwm,LOW);  //左电机PWM 调速输出0          
+  analogWrite(Left_motor_pwm,0);
+}
+
+
+
+void spin_left()         //左转(左轮后退，右轮前进)
+{
+  digitalWrite(Right_motor,LOW);  // 右电机前进
+  digitalWrite(Right_motor_pwm,HIGH);
+  analogWrite(Right_motor_pwm,130);
+  
+  digitalWrite(Left_motor,LOW);  // 左电机后退
+  digitalWrite(Left_motor_pwm,HIGH);
+  analogWrite(Left_motor_pwm,90);
+}
+
+
+void spin_right()        //右转(右轮后退，左轮前进)
+{
+  digitalWrite(Right_motor,HIGH);  // 右电机后退
+  digitalWrite(Right_motor_pwm,HIGH);
+  analogWrite(Right_motor_pwm,90);
+  
+  
+  digitalWrite(Left_motor,HIGH);  // 左电机前进
+  digitalWrite(Left_motor_pwm,HIGH);
+  analogWrite(Left_motor_pwm,130);
+}
+
+void loop()
+{ 
+  while(1)
+  {
+  SLL = digitalRead(SeniorLeft);
+  SL = digitalRead(SensorLeft);
+  SM = digitalRead(SensorMiddle);
+  SR = digitalRead(SensorRight);
+  SRR = digitalRead(SeniorRight);
+
+  if(SLL==LOW&&SL==LOW&&SM==HIGH&&SR==LOW&&SRR==LOW)//直行
+    run();
+  if((SLL==LOW&&SL==HIGH&&SR==LOW&&SRR==LOW)||(SLL==HIGH&&SL==LOW&&SR==LOW&&SRR==LOW))//左转
+    {
+      spin_left();
+      delayMicroseconds(time*4000);
+    }
+  if((SLL==LOW&&SL==LOW&&SR==HIGH&&SRR==LOW)||(SLL==LOW&&SL==LOW&&SR==LOW&&SRR==HIGH))//右转
+    {
+      spin_right();
+      delayMicroseconds(time*4000);
+    }
+  if((SLL==HIGH&&SL==HIGH&&SM==HIGH&&SR==LOW&&SRR==LOW)||(SLL==LOW&&SL==LOW&&SM==HIGH&&SR==HIGH&&SRR==HIGH))//丁字
+    run();
+  if(SLL==HIGH&&SL==HIGH&&SM==HIGH&&SR==HIGH&&SRR==HIGH)//十字
+    run();
+    //{spin_right();delay(550);}
+  if(SLL==HIGH&&SL==HIGH&&SM==LOW&&SR==LOW&&SRR==LOW)//左直角
+    {
+      spin_left();
+      delay(550);
+    }
+  if(SLL==LOW&&SL==LOW&&SM==LOW&&SR==HIGH&&SRR==HIGH)//右直角
+    {
+      spin_right();
+      delay(550);
+    }
+  if(SLL==HIGH&&SL==LOW&&SM==HIGH&&SR==LOW&&SRR==LOW)//左锐角
+    {
+      back();
+      delay(100);
+      spin_left();
+      delay(750);
+    }
+  }
+}
